@@ -14,7 +14,7 @@ class Bot
   def run
     connect
     until @server.eof? do
-      @msg = @server.gets.gsub(/[:#]/," ")
+      @msg = @server.gets
       pong if @msg.include? "PING"
       respond if relevant?
     end
@@ -33,18 +33,16 @@ class Bot
   end
 
   def relevant?
-    return false unless @msg.include? "privmsg #{@channel} :"
+    return false unless @msg.downcase.include? "privmsg #{@channel}".downcase
     (@msg.downcase.include? "weather") ? true : false
   end
 
   def respond
+    @msg = @msg.gsub(/[:#]/," ")
+    puts @msg
     city = check_for_city
-
-    # if (@msg.include? "forecast") || (@msg.include? "tomorrow")
-    #   give_forecast(city)
-    # else
-      give_current_weather(city)
-    # end
+    puts city
+    give_current_weather(city)
   end
 
   def check_for_city
@@ -84,13 +82,8 @@ class Bot
     else 
       @server.puts "PRIVMSG #{@channel} :"+ weather_msg
     end
-
   end
 
-  # def give_forecast(city)
-  #   url = "http://api.wunderground.com/api/ca74b375a5f317d5/forecast/q/Canada/#{city}.json"
-  #   data = JSON.parse Curl.get(url).body_str
-  # end
 
 end
 
