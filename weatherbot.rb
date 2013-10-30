@@ -7,7 +7,7 @@ class Bot
 
   def initialize
     @port = "6667"
-    @nick = "Katbot"
+    @nick = "WeatherBot"
     @channel = "#bitmakerlabs"
   end
 
@@ -29,7 +29,7 @@ class Bot
     @server.puts "USER #{@nick} 0 * #{@nick}"
     @server.puts "NICK #{@nick}"
     @server.puts "JOIN #{@channel}"
-    #@server.puts "PRIVMSG #{@channel} :Message!" #intro greeting
+    @server.puts "PRIVMSG #{@channel} :Hi! If you enter 'weather' and a city, I'll tell you the current weather."
   end
 
   def relevant?
@@ -39,18 +39,13 @@ class Bot
 
   def respond
     @msg = @msg.gsub(/[:#]/," ")
-    puts @msg
     city = check_for_city
-    puts city
     give_current_weather(city)
   end
 
   def check_for_city
     city = @msg.split(" ").keep_if { |word| word.capitalize == word }
-    puts city.to_s
     city.length==1 ? city=city[0] : city=nil
-    puts city
-    return city
   end
 
   def give_current_weather(input_city)
@@ -60,12 +55,12 @@ class Bot
 
     data = (JSON.parse Curl.get(url).body_str)
 
-    if data.nil?
+    if data["current_observation"].nil?
       url = "http://api.wunderground.com/api/ca74b375a5f317d5/conditions/q/#{city.capitalize}.json"
 
       data = (JSON.parse Curl.get(url).body_str)
 
-      if data.nil? #still
+      if data["current_observation"].nil? #still
         @server.puts "PRIVMSG #{@channel} :Sorry, I couldn't find the weather for that city"
         return
       end
